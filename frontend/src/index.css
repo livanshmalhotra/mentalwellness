@@ -1,0 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-darkBg text-slate-100 font-sans antialiased;
+    background-image: 
+      radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%),
+      radial-gradient(at 50% 0%, hsla(225,39%,10%,1) 0, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(242,50%,12%,1) 0, transparent 50%);
+    background-attachment: fixed;
+  }
+}
+
+/* Glassmorphism custom classes */
+.glass-panel {
+  @apply bg-cardBg bg-opacity-40 backdrop-blur-md border border-slate-800 rounded-2xl;
+}
+
+.glass-panel-active {
+  @apply bg-cardBg bg-opacity-70 backdrop-blur-md border border-slate-700 rounded-2xl shadow-xl transition-all duration-300;
+}
+
+/* Scrollbar customizations */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0B0F19;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1E293B;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}

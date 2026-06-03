@@ -1,0 +1,24 @@
+FROM python:3.11-slim
+
+WORKDIR /workspace
+
+# Install system dependencies needed for compiling certain packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy python dependencies
+COPY requirements.txt /workspace/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy ML pipeline and saved models
+COPY ml_models /workspace/ml_models
+
+# Copy Backend app
+COPY backend /workspace/backend
+
+WORKDIR /workspace/backend
+EXPOSE 8000
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
