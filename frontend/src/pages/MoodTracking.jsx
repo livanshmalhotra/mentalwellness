@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { moodAPI, predictionAPI } from '../services/api';
-import { Smile, Info, CheckCircle2, AlertTriangle, Calendar, Moon, Sparkles } from 'lucide-react';
+import { Smile, Info, CheckCircle2, AlertTriangle, Calendar, Moon, Sparkles, Zap, Battery } from 'lucide-react';
 
 const MoodTracking = () => {
-  const [moodScore, setMoodScore] = useState(3); // 1-5
+  const [moodScore, setMoodScore] = useState(5); // 1-10
   const [stressLevel, setStressLevel] = useState(5); // 1-10
+  const [energyLevel, setEnergyLevel] = useState(5); // 1-10
   const [sleepHours, setSleepHours] = useState(7.0); // float
-  const [productivityLevel, setProductivityLevel] = useState(6); // 1-10
-  const [motivationLevel, setMotivationLevel] = useState(6); // 1-10
+  const [sleepQuality, setSleepQuality] = useState(5); // 1-10
+  const [productivityLevel, setProductivityLevel] = useState(5); // 1-10
+  const [motivationLevel, setMotivationLevel] = useState(5); // 1-10
   
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState([]);
@@ -15,11 +17,16 @@ const MoodTracking = () => {
   const [error, setError] = useState('');
   
   const moodOptions = [
-    { score: 1, emoji: '😩', label: 'Awful' },
-    { score: 2, emoji: '😔', label: 'Bad' },
-    { score: 3, emoji: '😐', label: 'Okay' },
-    { score: 4, emoji: '🙂', label: 'Good' },
-    { score: 5, emoji: '😊', label: 'Excellent' },
+    { score: 1, emoji: '😩', label: 'Terrible' },
+    { score: 2, emoji: '😫', label: 'Awful' },
+    { score: 3, emoji: '😔', label: 'Bad' },
+    { score: 4, emoji: '😕', label: 'Poor' },
+    { score: 5, emoji: '😐', label: 'Okay' },
+    { score: 6, emoji: '🙂', label: 'Decent' },
+    { score: 7, emoji: '😊', label: 'Good' },
+    { score: 8, emoji: '😄', label: 'Great' },
+    { score: 9, emoji: '🤩', label: 'Amazing' },
+    { score: 10, emoji: '🌟', label: 'Excellent' },
   ];
 
   const loadMoodHistory = async () => {
@@ -46,7 +53,9 @@ const MoodTracking = () => {
       await moodAPI.logMood({
         mood_score: moodScore,
         stress_level: stressLevel,
+        energy_level: energyLevel,
         sleep_hours: parseFloat(sleepHours),
+        sleep_quality: sleepQuality,
         productivity_level: productivityLevel,
         motivation_level: motivationLevel
       });
@@ -58,7 +67,8 @@ const MoodTracking = () => {
       loadMoodHistory();
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.detail || 'Failed to submit mood log.');
+      const detail = err.response?.data?.detail;
+      setError(detail || 'Failed to submit mood log.');
     } finally {
       setLoading(false);
     }
@@ -91,10 +101,10 @@ const MoodTracking = () => {
             </div>
           )}
 
-          {/* 1. Mood Select */}
+          {/* 1. Mood Select (1-10) */}
           <div className="space-y-3">
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
-              How do you feel overall today?
+              How do you feel overall today? (1-10)
             </label>
             <div className="grid grid-cols-5 gap-2">
               {moodOptions.map((opt) => (
@@ -102,20 +112,60 @@ const MoodTracking = () => {
                   key={opt.score}
                   type="button"
                   onClick={() => setMoodScore(opt.score)}
-                  className={`py-4 rounded-xl flex flex-col items-center justify-center border transition-all duration-200 ${
+                  className={`py-3 rounded-xl flex flex-col items-center justify-center border transition-all duration-200 ${
                     moodScore === opt.score
                       ? 'bg-primary/25 border-primary shadow-inner scale-105'
                       : 'bg-slate-900/40 border-slate-800 hover:bg-slate-800/40'
                   }`}
                 >
-                  <span className="text-2xl mb-1.5">{opt.emoji}</span>
-                  <span className="text-[10px] font-bold text-slate-350">{opt.label}</span>
+                  <span className="text-xl mb-1">{opt.emoji}</span>
+                  <span className="text-[9px] font-bold text-slate-350">{opt.label}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* 2. Sleep Hours */}
+          {/* 2. Stress Level */}
+          <div className="space-y-3">
+            <div className="flex justify-between items-center text-xs">
+              <label className="font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <Smile className="h-4 w-4 text-red-400" /> Stress Level (1-10)
+              </label>
+              <span className="font-extrabold text-slate-200 bg-danger/10 px-2 py-0.5 rounded border border-danger/25">
+                {stressLevel}/10
+              </span>
+            </div>
+            <input
+              type="range"
+              min="1"
+              max="10"
+              value={stressLevel}
+              onChange={(e) => setStressLevel(parseInt(e.target.value))}
+              className="w-full accent-danger bg-slate-900 h-1.5 rounded-lg appearance-none cursor-pointer"
+            />
+          </div>
+
+          {/* 3. Energy Level */}
+          <div className="space-y-3">
+            <div className="flex justify-between items-center text-xs">
+              <label className="font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <Zap className="h-4 w-4 text-yellow-400" /> Energy Level (1-10)
+              </label>
+              <span className="font-extrabold text-slate-200 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/25">
+                {energyLevel}/10
+              </span>
+            </div>
+            <input
+              type="range"
+              min="1"
+              max="10"
+              value={energyLevel}
+              onChange={(e) => setEnergyLevel(parseInt(e.target.value))}
+              className="w-full accent-accent bg-slate-900 h-1.5 rounded-lg appearance-none cursor-pointer"
+            />
+          </div>
+
+          {/* 4. Sleep Hours */}
           <div className="space-y-3">
             <div className="flex justify-between items-center text-xs">
               <label className="font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
@@ -136,27 +186,27 @@ const MoodTracking = () => {
             />
           </div>
 
-          {/* 3. Stress Level */}
+          {/* 5. Sleep Quality */}
           <div className="space-y-3">
             <div className="flex justify-between items-center text-xs">
               <label className="font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                <Smile className="h-4 w-4 text-red-400" /> Stress Level (1-10)
+                <Battery className="h-4 w-4 text-cyan-400" /> Sleep Quality (1-10)
               </label>
-              <span className="font-extrabold text-slate-200 bg-danger/10 px-2 py-0.5 rounded border border-danger/25">
-                {stressLevel}/10
+              <span className="font-extrabold text-slate-200 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/25">
+                {sleepQuality}/10
               </span>
             </div>
             <input
               type="range"
               min="1"
               max="10"
-              value={stressLevel}
-              onChange={(e) => setStressLevel(parseInt(e.target.value))}
-              className="w-full accent-danger bg-slate-900 h-1.5 rounded-lg appearance-none cursor-pointer"
+              value={sleepQuality}
+              onChange={(e) => setSleepQuality(parseInt(e.target.value))}
+              className="w-full accent-cyan-500 bg-slate-900 h-1.5 rounded-lg appearance-none cursor-pointer"
             />
           </div>
 
-          {/* 4. Productivity Level */}
+          {/* 6. Productivity Level */}
           <div className="space-y-3">
             <div className="flex justify-between items-center text-xs">
               <label className="font-bold uppercase tracking-wider text-slate-400">
@@ -176,7 +226,7 @@ const MoodTracking = () => {
             />
           </div>
 
-          {/* 5. Motivation Level */}
+          {/* 7. Motivation Level */}
           <div className="space-y-3">
             <div className="flex justify-between items-center text-xs">
               <label className="font-bold uppercase tracking-wider text-slate-400">
@@ -221,7 +271,7 @@ const MoodTracking = () => {
               <h4 className="font-bold text-sm text-slate-200 uppercase tracking-wider">Recent Wellness Logs</h4>
             </div>
 
-            <div className="space-y-3 max-h-[350px] overflow-y-auto mt-4 pr-1">
+            <div className="space-y-3 max-h-[450px] overflow-y-auto mt-4 pr-1">
               {history.length === 0 ? (
                 <p className="text-xs text-slate-500 text-center py-8">No mood history available.</p>
               ) : (
@@ -244,6 +294,10 @@ const MoodTracking = () => {
                         <div>
                           <p className="text-slate-500">Stress</p>
                           <p className="font-bold text-red-400 mt-0.5">{log.stress_level}/10</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500">Energy</p>
+                          <p className="font-bold text-yellow-400 mt-0.5">{log.energy_level || '-'}/10</p>
                         </div>
                         <div>
                           <p className="text-slate-500">Prod</p>

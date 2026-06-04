@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { auth } from '../services/firebase';
 import { 
   onAuthStateChanged, 
@@ -7,6 +7,7 @@ import {
   signOut,
   updateProfile
 } from 'firebase/auth';
+import { assessmentAPI } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -14,6 +15,18 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [onboardingCompleted, setOnboardingCompleted] = useState(null); // null = unknown, true/false = known
+
+  const fetchOnboardingStatus = useCallback(async () => {
+    try {
+      const res = await assessmentAPI.getStatus();
+      setOnboardingCompleted(res.data.onboarding_completed);
+    } catch (err) {
+      console.error("Error fetching onboarding status:", err);
+      // Default to true to avoid blocking existing users if the endpoint fails
+      setOnboardingCompleted(true);
+    }
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -27,6 +40,9 @@ export const AuthProvider = ({ children }) => {
             email: firebaseUser.email,
             displayName: firebaseUser.displayName,
           });
+          // Fetch onboarding status after login
+          // Small delay to ensure token is set in localStorage for API interceptor
+          setTimeout(() => fetchOnboardingStatus(), 100);
         } catch (err) {
           console.error("Error getting Firebase ID token:", err);
           logout();
@@ -35,6 +51,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('token');
         setToken(null);
         setUser(null);
+        setOnboardingCompleted(null);
       }
       setLoading(false);
     });
@@ -51,6 +68,8 @@ export const AuthProvider = ({ children }) => {
       email: userCredential.user.email,
       displayName: userCredential.user.displayName,
     });
+    // Fetch onboarding status
+    setTimeout(() => fetchOnboardingStatus(), 100);
     return userCredential;
   };
 
@@ -66,6 +85,8 @@ export const AuthProvider = ({ children }) => {
       email: userCredential.user.email,
       displayName: fullName,
     });
+    // New user — onboarding not yet done
+    setOnboardingCompleted(false);
     return userCredential;
   };
 
@@ -74,7 +95,12 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     setToken(null);
     setUser(null);
+    setOnboardingCompleted(null);
   };
+
+  const refreshOnboardingStatus = useCallback(async () => {
+    await fetchOnboardingStatus();
+  }, [fetchOnboardingStatus]);
 
   return (
     <AuthContext.Provider 
@@ -85,7 +111,9 @@ export const AuthProvider = ({ children }) => {
         register: registerWithEmail, 
         logout, 
         isAuthenticated: !!user, 
-        loading 
+        loading,
+        onboardingCompleted,
+        refreshOnboardingStatus,
       }}
     >
       {children}
@@ -95,4 +123,3 @@ export const AuthProvider = ({ children }) => {
 
 export const useAuth = () => useContext(AuthContext);
 export default AuthContext;
-

@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { analyticsAPI, recommendationAPI, chatbotAPI } from '../services/api';
 import { 
   ShieldAlert, Activity, Heart, Sparkles, Send, CheckCircle2,
-  TrendingUp, Moon, Brain, ChevronRight, AlertTriangle, AlertCircle
+  TrendingUp, Moon, Brain, ChevronRight, AlertTriangle, AlertCircle,
+  Shield, Lightbulb
 } from 'lucide-react';
 import { 
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, 
-  AreaChart, Area, CartesianGrid, Legend 
+  AreaChart, Area, CartesianGrid, Legend, RadarChart, PolarGrid,
+  PolarAngleAxis, PolarRadiusAxis, Radar
 } from 'recharts';
 
 const Dashboard = () => {
@@ -82,6 +84,15 @@ const Dashboard = () => {
   // Fallback default UI if no logs are present
   const showFallback = error || !data || data.trends.length === 0;
 
+  // Personality radar chart data
+  const personalityData = data?.personality_summary ? [
+    { trait: 'Extraversion', value: data.personality_summary.extraversion },
+    { trait: 'Agreeableness', value: data.personality_summary.agreeableness },
+    { trait: 'Conscientiousness', value: data.personality_summary.conscientiousness },
+    { trait: 'Emotional Stability', value: data.personality_summary.emotional_stability },
+    { trait: 'Openness', value: data.personality_summary.openness },
+  ] : null;
+
   return (
     <div className="space-y-8 animate-fadeIn">
       
@@ -130,12 +141,7 @@ const Dashboard = () => {
                 </div>
               </div>
               <div className="mt-6 flex items-center gap-2">
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                  data.wellness_score >= 70 ? 'bg-secondary/15 text-secondary' : 'bg-danger/10 text-red-400'
-                }`}>
-                  {data.wellness_score >= 70 ? 'Thriving' : 'Requires Rest'}
-                </span>
-                <p className="text-[11px] text-slate-400 font-medium">Aggregated across recent logs.</p>
+                <p className="text-[11px] text-slate-400 font-medium">Multi-dimensional score</p>
               </div>
             </div>
 
@@ -184,6 +190,17 @@ const Dashboard = () => {
 
           </div>
 
+          {/* AI Wellness Explanation Banner */}
+          {data.wellness_explanation && (
+            <div className="glass-panel p-4 bg-indigo-500/5 border border-indigo-500/15 flex items-start gap-3 rounded-2xl">
+              <Lightbulb className="h-5 w-5 text-indigo-400 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-xs font-bold text-slate-200">AI Wellness Insight</h4>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">{data.wellness_explanation}</p>
+              </div>
+            </div>
+          )}
+
           {/* Weekly Summary Warning Banner */}
           {data.drifts.length > 0 && (
             <div className="glass-panel p-4 bg-amber-500/10 border border-amber-500/25 flex items-start gap-3 rounded-2xl">
@@ -192,6 +209,86 @@ const Dashboard = () => {
                 <h4 className="text-xs font-bold text-slate-200">Behavioral Drift Indicators Flagged</h4>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">{data.weekly_summary}</p>
               </div>
+            </div>
+          )}
+
+          {/* Personality & Resilience Row */}
+          {(personalityData || data?.resilience_summary) && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
+              {/* Personality Radar Chart */}
+              {personalityData && (
+                <div className="glass-panel p-6 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-bold text-sm text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                      <Brain className="h-4 w-4 text-primary" /> Personality Profile
+                    </h4>
+                    <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-primary/10 text-indigo-400 border border-primary/25">TIPI Baseline</span>
+                  </div>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RadarChart cx="50%" cy="50%" outerRadius="70%" data={personalityData}>
+                        <PolarGrid stroke="#1e293b" />
+                        <PolarAngleAxis dataKey="trait" tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 9, fill: '#475569' }} />
+                        <Radar name="Traits" dataKey="value" stroke="#6366f1" fill="#6366f1" fillOpacity={0.2} strokeWidth={2} />
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+
+              {/* Resilience Card */}
+              {data?.resilience_summary && (
+                <div className="glass-panel p-6 space-y-4 flex flex-col items-center justify-center">
+                  <div className="flex justify-between items-center w-full">
+                    <h4 className="font-bold text-sm text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                      <Shield className="h-4 w-4 text-emerald-400" /> Resilience Baseline
+                    </h4>
+                    <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">BRS Score</span>
+                  </div>
+                  
+                  <div className="flex flex-col items-center gap-4 py-6">
+                    {/* Circular Gauge */}
+                    <div 
+                      className="w-32 h-32 rounded-full flex items-center justify-center relative"
+                      style={{
+                        background: `conic-gradient(${
+                          data.resilience_summary.level === 'High' ? '#10b981' : 
+                          data.resilience_summary.level === 'Moderate' ? '#f59e0b' : '#ef4444'
+                        } ${((data.resilience_summary.score - 1) / 4) * 100}%, rgba(30,41,59,0.4) ${((data.resilience_summary.score - 1) / 4) * 100}%)`
+                      }}
+                    >
+                      <div className="absolute inset-[10px] rounded-full bg-[#0f172a] flex items-center justify-center">
+                        <span className={`text-3xl font-black ${
+                          data.resilience_summary.level === 'High' ? 'text-emerald-400' :
+                          data.resilience_summary.level === 'Moderate' ? 'text-amber-400' : 'text-red-400'
+                        }`}>
+                          {data.resilience_summary.score}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <span className={`text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full ${
+                      data.resilience_summary.level === 'High' 
+                        ? 'bg-emerald-500/12 text-emerald-400 border border-emerald-500/25' 
+                        : data.resilience_summary.level === 'Moderate'
+                        ? 'bg-amber-500/12 text-amber-400 border border-amber-500/25'
+                        : 'bg-red-500/12 text-red-400 border border-red-500/25'
+                    }`}>
+                      {data.resilience_summary.level} Resilience
+                    </span>
+                    
+                    <p className="text-[11px] text-slate-500 text-center max-w-xs">
+                      {data.resilience_summary.level === 'High' 
+                        ? 'You demonstrate strong ability to recover from stress and setbacks.'
+                        : data.resilience_summary.level === 'Moderate'
+                        ? 'Your resilience is average. Building coping strategies can help strengthen it.'
+                        : 'Low resilience may amplify the impact of stressors. Consider resilience-building exercises.'}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -212,7 +309,7 @@ const Dashboard = () => {
                     <YAxis domain={[1, 10]} stroke="#64748b" tick={{ fontSize: 10 }} />
                     <Tooltip contentStyle={{ backgroundColor: '#161d30', borderColor: '#334155', color: '#f8fafc' }} />
                     <Legend verticalAlign="top" height={36} iconType="circle" />
-                    <Line name="Mood Score (1-5)" type="monotone" dataKey="mood" stroke="#6366f1" strokeWidth={3} activeDot={{ r: 8 }} />
+                    <Line name="Mood Score (1-10)" type="monotone" dataKey="mood" stroke="#6366f1" strokeWidth={3} activeDot={{ r: 8 }} />
                     <Line name="Stress Level (1-10)" type="monotone" dataKey="stress" stroke="#ef4444" strokeWidth={2.5} />
                   </LineChart>
                 </ResponsiveContainer>

@@ -2,8 +2,11 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.database.session import engine, Base
-from app.routes import auth, mood, journal, predict, analytics, chatbot, recommendations, notifications
+from app.database.session import engine, Base, run_migrations
+from app.routes import auth, mood, journal, predict, analytics, chatbot, recommendations, notifications, assessment
+
+# Run database migrations
+run_migrations()
 
 # Initialize Database tables
 Base.metadata.create_all(bind=engine)
@@ -39,6 +42,7 @@ app.include_router(analytics.router)
 app.include_router(chatbot.router)
 app.include_router(recommendations.router)
 app.include_router(notifications.router)
+app.include_router(assessment.router)
 
 @app.get("/")
 def read_root():

@@ -29,11 +29,38 @@ class TokenData(BaseModel):
     email: Optional[str] = None
 
 
+# --- Assessment Schemas ---
+class AssessmentSubmit(BaseModel):
+    tipi_responses: List[int] = Field(..., min_length=10, max_length=10)  # Q1-Q10, each 1-7
+    brs_responses: List[int] = Field(..., min_length=6, max_length=6)    # Q11-Q16, each 1-5
+
+class AssessmentProfileResponse(BaseModel):
+    id: int
+    extraversion: float
+    agreeableness: float
+    conscientiousness: float
+    emotional_stability: float
+    openness: float
+    resilience_score: float
+    resilience_level: str
+    initial_wellness_score: Optional[float] = None
+    initial_burnout_risk: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class OnboardingStatusResponse(BaseModel):
+    onboarding_completed: bool
+
+
 # --- Mood Schemas ---
 class MoodLogCreate(BaseModel):
-    mood_score: int = Field(..., ge=1, le=5)
+    mood_score: int = Field(..., ge=1, le=10)
     stress_level: int = Field(..., ge=1, le=10)
+    energy_level: int = Field(..., ge=1, le=10)
     sleep_hours: float = Field(..., ge=0, le=24)
+    sleep_quality: int = Field(..., ge=1, le=10)
     productivity_level: int = Field(..., ge=1, le=10)
     motivation_level: int = Field(..., ge=1, le=10)
 
@@ -42,9 +69,12 @@ class MoodLogResponse(BaseModel):
     user_id: int
     mood_score: int
     stress_level: int
+    energy_level: Optional[int] = None
     sleep_hours: float
+    sleep_quality: Optional[int] = None
     productivity_level: int
     motivation_level: int
+    mood_source: Optional[str] = None
     created_at: datetime
 
     class Config:
@@ -54,6 +84,8 @@ class MoodLogResponse(BaseModel):
 # --- Journal Schemas ---
 class JournalEntryCreate(BaseModel):
     text: str = Field(..., min_length=2)
+    is_private: bool = False
+    password: Optional[str] = None
 
 class JournalEntryResponse(BaseModel):
     id: int
@@ -63,10 +95,22 @@ class JournalEntryResponse(BaseModel):
     sentiment_score: Optional[float] = None
     emotion: str
     stress_level: Optional[int] = None
+    is_private: bool = False
     created_at: datetime
 
     class Config:
         from_attributes = True
+
+class PasscodeRequest(BaseModel):
+    passcode: str = Field(..., min_length=4)
+
+class JournalUnlockRequest(BaseModel):
+    password: str
+
+class JournalUpdateRequest(BaseModel):
+    text: str = Field(..., min_length=2)
+    password: Optional[str] = None
+
 
 
 # --- Prediction Schemas ---

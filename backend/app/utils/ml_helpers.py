@@ -221,3 +221,69 @@ def predict_sentiment(text: str):
         "confidence": min(1.0, confidence),
         "stress_level": stress_level
     }
+
+
+def extract_journal_features(text: str) -> dict:
+    """
+    Extract comprehensive NLP features from a journal entry for wellness scoring.
+    Combines existing sentiment/emotion models with keyword-based burnout/anxiety detection.
+    
+    Returns:
+        journal_sentiment_score: -1.0 to 1.0 (negative to positive)
+        journal_stress_score: 0.0 to 1.0 (low to high stress)
+        journal_emotion_vector: dict of emotion probabilities
+        burnout_indicators: count of burnout-related keywords detected
+        anxiety_indicators: count of anxiety-related keywords detected
+    """
+    # Get base predictions
+    sentiment_result = predict_sentiment(text)
+    emotion_result = predict_emotion(text)
+    
+    # Convert sentiment to numeric score (-1.0 to 1.0)
+    sentiment_map = {"positive": 1.0, "neutral": 0.0, "negative": -1.0}
+    sentiment_score = sentiment_map.get(sentiment_result["sentiment"], 0.0)
+    # Weight by confidence
+    sentiment_score *= sentiment_result["confidence"]
+    
+    # Normalize stress to 0-1 range
+    stress_score = sentiment_result["stress_level"] / 10.0
+    
+    # Burnout keyword detection
+    lower_text = text.lower()
+    burnout_keywords = [
+        "exhausted", "burnt out", "burnout", "burn out", "drained",
+        "overwhelmed", "can't cope", "too much", "breaking point",
+        "no energy", "worn out", "giving up", "hopeless", "pointless"
+    ]
+    anxiety_keywords = [
+        "anxious", "anxiety", "worried", "worry", "panic",
+        "nervous", "restless", "can't sleep", "racing thoughts",
+        "on edge", "tense", "dread", "fearful", "uneasy"
+    ]
+    positive_keywords = [
+        "motivated", "productive", "grateful", "energetic", "happy",
+        "excited", "optimistic", "confident", "accomplished", "proud",
+        "peaceful", "content", "inspired", "focused", "determined"
+    ]
+    
+    burnout_count = sum(1 for kw in burnout_keywords if kw in lower_text)
+    anxiety_count = sum(1 for kw in anxiety_keywords if kw in lower_text)
+    positive_count = sum(1 for kw in positive_keywords if kw in lower_text)
+    
+    # Adjust sentiment score based on keyword detection
+    keyword_adjustment = (positive_count * 0.1) - (burnout_count * 0.15) - (anxiety_count * 0.1)
+    adjusted_sentiment = max(-1.0, min(1.0, sentiment_score + keyword_adjustment))
+    
+    # Adjust stress score based on keywords
+    stress_adjustment = (burnout_count * 0.1) + (anxiety_count * 0.08) - (positive_count * 0.05)
+    adjusted_stress = max(0.0, min(1.0, stress_score + stress_adjustment))
+    
+    return {
+        "journal_sentiment_score": round(adjusted_sentiment, 3),
+        "journal_stress_score": round(adjusted_stress, 3),
+        "journal_emotion_vector": emotion_result["all_scores"],
+        "primary_emotion": emotion_result["emotion"],
+        "burnout_indicators": burnout_count,
+        "anxiety_indicators": anxiety_count,
+        "positive_indicators": positive_count,
+    }

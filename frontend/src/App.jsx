@@ -7,6 +7,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 // Import Pages
 import Login from './pages/Login';
 import Register from './pages/Register';
+import OnboardingAssessment from './pages/OnboardingAssessment';
 import Dashboard from './pages/Dashboard';
 import MoodTracking from './pages/MoodTracking';
 import Journal from './pages/Journal';
@@ -22,6 +23,16 @@ function App() {
           {/* Public Authentication Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+
+          {/* Onboarding Assessment Route */}
+          <Route
+            path="/onboarding"
+            element={
+              <ProtectedRoute>
+                <OnboardingAssessment />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Protected Application Routes */}
           <Route 

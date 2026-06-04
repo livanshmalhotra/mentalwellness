@@ -52,8 +52,13 @@ export const moodAPI = {
 };
 
 export const journalAPI = {
-  logJournal: (text) => api.post('/api/journal', { text }),
+  logJournal: (text, isPrivate = false, password = null) => 
+    api.post('/api/journal', { text, is_private: isPrivate, password }),
   getHistory: (limit = 30) => api.get(`/api/journal/history?limit=${limit}`),
+  hasPasscode: () => api.get('/api/journal/has-passcode'),
+  setPasscode: (passcode) => api.post('/api/journal/set-passcode', { passcode }),
+  unlockJournal: (id, password) => api.post(`/api/journal/${id}/unlock`, { password }),
+  updateJournal: (id, text, password = null) => api.put(`/api/journal/${id}`, { text, password }),
 };
 
 export const predictionAPI = {
@@ -78,6 +83,13 @@ export const notificationAPI = {
 
 export const chatbotAPI = {
   sendMessage: (message) => api.post('/api/chatbot', { message }),
+};
+
+export const assessmentAPI = {
+  submitAssessment: (data) => api.post('/api/assessment/submit', data),
+  getProfile: () => api.get('/api/assessment/profile'),
+  getStatus: () => api.get('/api/assessment/status'),
+  retakeAssessment: (data) => api.post('/api/assessment/retake', data),
 };
 
 export default api;

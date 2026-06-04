@@ -76,7 +76,7 @@ And outputs the trained classifiers to `ml_models/saved_models/`:
 Start the FastAPI server:
 
 ```bash
-cd backend
+cd backend   
 uvicorn app.main:app --reload --port 8000
 ```
 - API will be accessible at: `http://localhost:8000`
