@@ -42,9 +42,9 @@ def create_mood_log(db: Session, mood_in: MoodLogCreate, user_id: int) -> MoodLo
         stress_level=mood_in.stress_level,
         energy_level=mood_in.energy_level,
         sleep_hours=mood_in.sleep_hours,
-        sleep_quality=mood_in.sleep_quality,
+        sleep_quality=mood_in.sleep_quality if mood_in.sleep_quality is not None else 5,
         productivity_level=mood_in.productivity_level,
-        motivation_level=mood_in.motivation_level
+        motivation_level=mood_in.motivation_level if mood_in.motivation_level is not None else 5
     )
     db.add(db_mood)
     db.commit()

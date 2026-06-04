@@ -60,9 +60,9 @@ class MoodLogCreate(BaseModel):
     stress_level: int = Field(..., ge=1, le=10)
     energy_level: int = Field(..., ge=1, le=10)
     sleep_hours: float = Field(..., ge=0, le=24)
-    sleep_quality: int = Field(..., ge=1, le=10)
+    sleep_quality: Optional[int] = Field(None, ge=1, le=10)
     productivity_level: int = Field(..., ge=1, le=10)
-    motivation_level: int = Field(..., ge=1, le=10)
+    motivation_level: Optional[int] = Field(None, ge=1, le=10)
 
 class MoodLogResponse(BaseModel):
     id: int

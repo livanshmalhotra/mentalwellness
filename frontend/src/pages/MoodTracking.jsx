@@ -3,7 +3,7 @@ import { moodAPI, predictionAPI } from '../services/api';
 import { Smile, Info, CheckCircle2, AlertTriangle, Calendar, Moon, Sparkles, Zap, Battery } from 'lucide-react';
 
 const MoodTracking = () => {
-  const [moodScore, setMoodScore] = useState(5); // 1-10
+  const [moodScore, setMoodScore] = useState(6); // 1-10 (mapped to 5 levels)
   const [stressLevel, setStressLevel] = useState(5); // 1-10
   const [energyLevel, setEnergyLevel] = useState(5); // 1-10
   const [sleepHours, setSleepHours] = useState(7.0); // float
@@ -17,15 +17,10 @@ const MoodTracking = () => {
   const [error, setError] = useState('');
   
   const moodOptions = [
-    { score: 1, emoji: '😩', label: 'Terrible' },
-    { score: 2, emoji: '😫', label: 'Awful' },
-    { score: 3, emoji: '😔', label: 'Bad' },
+    { score: 2, emoji: '😩', label: 'Terrible' },
     { score: 4, emoji: '😕', label: 'Poor' },
-    { score: 5, emoji: '😐', label: 'Okay' },
-    { score: 6, emoji: '🙂', label: 'Decent' },
-    { score: 7, emoji: '😊', label: 'Good' },
-    { score: 8, emoji: '😄', label: 'Great' },
-    { score: 9, emoji: '🤩', label: 'Amazing' },
+    { score: 6, emoji: '😐', label: 'Okay' },
+    { score: 8, emoji: '😊', label: 'Good' },
     { score: 10, emoji: '🌟', label: 'Excellent' },
   ];
 
@@ -55,9 +50,7 @@ const MoodTracking = () => {
         stress_level: stressLevel,
         energy_level: energyLevel,
         sleep_hours: parseFloat(sleepHours),
-        sleep_quality: sleepQuality,
-        productivity_level: productivityLevel,
-        motivation_level: motivationLevel
+        productivity_level: productivityLevel
       });
 
       // 2. Trigger burnout risk recalculation automatically
@@ -106,6 +99,9 @@ const MoodTracking = () => {
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
               How do you feel overall today? (1-10)
             </label>
+            <p className="text-[10px] text-slate-500 leading-relaxed">
+              Select the emoji representing your overall emotional baseline over the last 24 hours (1 for terrible/exhausted to 10 for thriving/excellent).
+            </p>
             <div className="grid grid-cols-5 gap-2">
               {moodOptions.map((opt) => (
                 <button
@@ -135,6 +131,9 @@ const MoodTracking = () => {
                 {stressLevel}/10
               </span>
             </div>
+            <p className="text-[10px] text-slate-500 leading-relaxed">
+              Estimate your current stress burden: 1 indicates completely relaxed/calm, 5 is moderate load (typical study day), 10 indicates extreme pressure/panic.
+            </p>
             <input
               type="range"
               min="1"
@@ -155,6 +154,9 @@ const MoodTracking = () => {
                 {energyLevel}/10
               </span>
             </div>
+            <p className="text-[10px] text-slate-500 leading-relaxed">
+              Rate your physical vitality and mental alert state today: select 1 for feeling completely drained/fatigued, 5 for average wakefulness, and 10 for feeling highly energetic.
+            </p>
             <input
               type="range"
               min="1"
@@ -175,6 +177,9 @@ const MoodTracking = () => {
                 {sleepHours} hrs
               </span>
             </div>
+            <p className="text-[10px] text-slate-500 leading-relaxed">
+              Drag the slider to input the total duration of sleep you achieved last night (range 0 to 16 hours, incremented by 0.5 hours).
+            </p>
             <input
               type="range"
               min="0"
@@ -186,27 +191,7 @@ const MoodTracking = () => {
             />
           </div>
 
-          {/* 5. Sleep Quality */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center text-xs">
-              <label className="font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                <Battery className="h-4 w-4 text-cyan-400" /> Sleep Quality (1-10)
-              </label>
-              <span className="font-extrabold text-slate-200 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/25">
-                {sleepQuality}/10
-              </span>
-            </div>
-            <input
-              type="range"
-              min="1"
-              max="10"
-              value={sleepQuality}
-              onChange={(e) => setSleepQuality(parseInt(e.target.value))}
-              className="w-full accent-cyan-500 bg-slate-900 h-1.5 rounded-lg appearance-none cursor-pointer"
-            />
-          </div>
-
-          {/* 6. Productivity Level */}
+          {/* 5. Productivity Level */}
           <div className="space-y-3">
             <div className="flex justify-between items-center text-xs">
               <label className="font-bold uppercase tracking-wider text-slate-400">
@@ -216,6 +201,9 @@ const MoodTracking = () => {
                 {productivityLevel}/10
               </span>
             </div>
+            <p className="text-[10px] text-slate-500 leading-relaxed">
+              Evaluate your study efficiency today: select 1 if you were highly distracted and got no work done, 5 for moderate task completion, and 10 for complete focus.
+            </p>
             <input
               type="range"
               min="1"
@@ -223,26 +211,6 @@ const MoodTracking = () => {
               value={productivityLevel}
               onChange={(e) => setProductivityLevel(parseInt(e.target.value))}
               className="w-full accent-primary bg-slate-900 h-1.5 rounded-lg appearance-none cursor-pointer"
-            />
-          </div>
-
-          {/* 7. Motivation Level */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center text-xs">
-              <label className="font-bold uppercase tracking-wider text-slate-400">
-                Motivation Level (1-10)
-              </label>
-              <span className="font-extrabold text-slate-200 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/25">
-                {motivationLevel}/10
-              </span>
-            </div>
-            <input
-              type="range"
-              min="1"
-              max="10"
-              value={motivationLevel}
-              onChange={(e) => setMotivationLevel(parseInt(e.target.value))}
-              className="w-full accent-accent bg-slate-900 h-1.5 rounded-lg appearance-none cursor-pointer"
             />
           </div>
 

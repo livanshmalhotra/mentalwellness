@@ -212,9 +212,9 @@ const Dashboard = () => {
             </div>
           )}
 
-          {/* Personality & Resilience Row */}
-          {(personalityData || data?.resilience_summary) && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Personality Row */}
+          {personalityData && (
+            <div className="grid grid-cols-1 gap-6">
               
               {/* Personality Radar Chart */}
               {personalityData && (
@@ -234,58 +234,6 @@ const Dashboard = () => {
                         <Radar name="Traits" dataKey="value" stroke="#6366f1" fill="#6366f1" fillOpacity={0.2} strokeWidth={2} />
                       </RadarChart>
                     </ResponsiveContainer>
-                  </div>
-                </div>
-              )}
-
-              {/* Resilience Card */}
-              {data?.resilience_summary && (
-                <div className="glass-panel p-6 space-y-4 flex flex-col items-center justify-center">
-                  <div className="flex justify-between items-center w-full">
-                    <h4 className="font-bold text-sm text-slate-200 uppercase tracking-wider flex items-center gap-2">
-                      <Shield className="h-4 w-4 text-emerald-400" /> Resilience Baseline
-                    </h4>
-                    <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">BRS Score</span>
-                  </div>
-                  
-                  <div className="flex flex-col items-center gap-4 py-6">
-                    {/* Circular Gauge */}
-                    <div 
-                      className="w-32 h-32 rounded-full flex items-center justify-center relative"
-                      style={{
-                        background: `conic-gradient(${
-                          data.resilience_summary.level === 'High' ? '#10b981' : 
-                          data.resilience_summary.level === 'Moderate' ? '#f59e0b' : '#ef4444'
-                        } ${((data.resilience_summary.score - 1) / 4) * 100}%, rgba(30,41,59,0.4) ${((data.resilience_summary.score - 1) / 4) * 100}%)`
-                      }}
-                    >
-                      <div className="absolute inset-[10px] rounded-full bg-[#0f172a] flex items-center justify-center">
-                        <span className={`text-3xl font-black ${
-                          data.resilience_summary.level === 'High' ? 'text-emerald-400' :
-                          data.resilience_summary.level === 'Moderate' ? 'text-amber-400' : 'text-red-400'
-                        }`}>
-                          {data.resilience_summary.score}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <span className={`text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full ${
-                      data.resilience_summary.level === 'High' 
-                        ? 'bg-emerald-500/12 text-emerald-400 border border-emerald-500/25' 
-                        : data.resilience_summary.level === 'Moderate'
-                        ? 'bg-amber-500/12 text-amber-400 border border-amber-500/25'
-                        : 'bg-red-500/12 text-red-400 border border-red-500/25'
-                    }`}>
-                      {data.resilience_summary.level} Resilience
-                    </span>
-                    
-                    <p className="text-[11px] text-slate-500 text-center max-w-xs">
-                      {data.resilience_summary.level === 'High' 
-                        ? 'You demonstrate strong ability to recover from stress and setbacks.'
-                        : data.resilience_summary.level === 'Moderate'
-                        ? 'Your resilience is average. Building coping strategies can help strengthen it.'
-                        : 'Low resilience may amplify the impact of stressors. Consider resilience-building exercises.'}
-                    </p>
                   </div>
                 </div>
               )}
