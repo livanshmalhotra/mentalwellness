@@ -43,7 +43,7 @@ MindShield AI addresses the growing mental health crisis in academic environment
 
 ### Backend (FastAPI Web Framework)
 *   **Core API:** FastAPI, Uvicorn ASGI server.
-*   **Database & ORM:** SQLAlchemy for object relational mapping, SQLite (for local development), and PostgreSQL (production-ready).
+*   **Database & ORM:** SQLAlchemy for object relational mapping and PostgreSQL (used for both local development and production).
 *   **Authentication & Security:** JSON Web Tokens (JWT) for session management, Passlib (bcrypt) for user credential protection, and PyCryptodome for journal encryption.
 *   **Data Validation:** Pydantic models for request/response serialization.
 

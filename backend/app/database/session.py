@@ -3,8 +3,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# Load DATABASE_URL from environment or fallback to local SQLite
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./mental_wellness.db")
+# Load DATABASE_URL from environment or fallback to local PostgreSQL
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:wellnesspassword@localhost:5432/student_wellness")
 
 # SQLite needs special connection arguments to avoid multi-thread errors in FastAPI
 connect_args = {}
@@ -38,7 +38,7 @@ def run_migrations():
             
         # Check if journal_entries already has is_private
         try:
-            db.execute(text("ALTER TABLE journal_entries ADD COLUMN is_private BOOLEAN DEFAULT 0;"))
+            db.execute(text("ALTER TABLE journal_entries ADD COLUMN is_private BOOLEAN DEFAULT FALSE;"))
             db.commit()
             print("Migration: Added is_private column to journal_entries.")
         except Exception:
@@ -46,7 +46,7 @@ def run_migrations():
 
         # Add onboarding_completed to users
         try:
-            db.execute(text("ALTER TABLE users ADD COLUMN onboarding_completed BOOLEAN DEFAULT 0;"))
+            db.execute(text("ALTER TABLE users ADD COLUMN onboarding_completed BOOLEAN DEFAULT FALSE;"))
             db.commit()
             print("Migration: Added onboarding_completed column to users.")
         except Exception:
