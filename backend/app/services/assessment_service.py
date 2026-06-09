@@ -126,7 +126,7 @@ def _validate_responses(tipi: List[int], brs: List[int]):
             )
 
 
-def generate_initial_recommendations(db: Session, user_id: int, profile: AssessmentProfile, wellness_score: float):
+def generate_initial_recommendations(db: Session, user_id: str, profile: AssessmentProfile, wellness_score: float):
     """
     Generate initial personalized wellness recommendations based on the user's onboarding profile.
     """
@@ -223,7 +223,7 @@ def generate_initial_recommendations(db: Session, user_id: int, profile: Assessm
         db.add(rec)
 
 
-def submit_assessment(db: Session, user_id: int, data: AssessmentSubmit) -> AssessmentProfile:
+def submit_assessment(db: Session, user_id: str, data: AssessmentSubmit) -> AssessmentProfile:
     """
     Process and store the onboarding assessment.
     Computes personality traits and resilience, creates the profile,
@@ -344,7 +344,7 @@ def submit_assessment(db: Session, user_id: int, data: AssessmentSubmit) -> Asse
     return profile
 
 
-def get_assessment_profile(db: Session, user_id: int) -> Optional[AssessmentProfile]:
+def get_assessment_profile(db: Session, user_id: str) -> Optional[AssessmentProfile]:
     """Get the user's active assessment profile."""
     return db.query(AssessmentProfile).filter(
         AssessmentProfile.user_id == user_id,
@@ -352,7 +352,7 @@ def get_assessment_profile(db: Session, user_id: int) -> Optional[AssessmentProf
     ).order_by(AssessmentProfile.created_at.desc()).first()
 
 
-def check_onboarding_status(db: Session, user_id: int) -> bool:
+def check_onboarding_status(db: Session, user_id: str) -> bool:
     """Check if the user has completed the onboarding assessment."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -360,7 +360,7 @@ def check_onboarding_status(db: Session, user_id: int) -> bool:
     return bool(user.onboarding_completed)
 
 
-def retake_assessment(db: Session, user_id: int, data: AssessmentSubmit) -> AssessmentProfile:
+def retake_assessment(db: Session, user_id: str, data: AssessmentSubmit) -> AssessmentProfile:
     """
     Retake the assessment: archive old profiles and create a new one.
     """

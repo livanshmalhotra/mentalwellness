@@ -6,7 +6,7 @@ from app.database.session import Base
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     full_name = Column(String, nullable=True)
@@ -27,7 +27,7 @@ class MoodLog(Base):
     __tablename__ = "mood_logs"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     mood_score = Column(Integer, nullable=False) # 1 to 10
     stress_level = Column(Integer, nullable=False) # 1 to 10
     energy_level = Column(Integer, nullable=True) # 1 to 10
@@ -45,7 +45,7 @@ class JournalEntry(Base):
     __tablename__ = "journal_entries"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     text = Column(Text, nullable=False)
     sentiment = Column(String, nullable=False) # positive, negative, neutral
     sentiment_score = Column(Float, nullable=True) # numeric score
@@ -62,7 +62,7 @@ class BurnoutPrediction(Base):
     __tablename__ = "burnout_predictions"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     stress_level = Column(Integer, nullable=False)
     sleep_hours = Column(Float, nullable=False)
     productivity_level = Column(Integer, nullable=False)
@@ -79,7 +79,7 @@ class Recommendation(Base):
     __tablename__ = "recommendations"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     title = Column(String, nullable=False)
     category = Column(String, nullable=False) # breathing, focus, break, exercise, activity
     content = Column(Text, nullable=False)
@@ -93,7 +93,7 @@ class Notification(Base):
     __tablename__ = "notifications"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     type = Column(String, nullable=False) # burnout_alert, mood_reminder, journal_reminder
     title = Column(String, nullable=False)
     message = Column(Text, nullable=False)
@@ -107,7 +107,7 @@ class AssessmentProfile(Base):
     __tablename__ = "assessment_profiles"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     # Raw TIPI responses (Q1-Q10, scale 1-7)
     tipi_q1 = Column(Integer, nullable=False)

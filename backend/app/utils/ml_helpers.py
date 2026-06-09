@@ -1,6 +1,10 @@
 import os
 import joblib
 import numpy as np
+import logging
+import asyncio
+
+logger = logging.getLogger("emotionsystem.ml")
 
 # Absolute paths to saved models
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -18,23 +22,24 @@ sentiment_data = None
 try:
     if os.path.exists(BURNOUT_MODEL_PATH):
         burnout_data = joblib.load(BURNOUT_MODEL_PATH)
-        print("Loaded Burnout model successfully.")
+        logger.info("Loaded Burnout model successfully.")
 except Exception as e:
-    print(f"Failed to load burnout model: {e}")
+    logger.error(f"Failed to load burnout model: {e}")
 
 try:
     if os.path.exists(EMOTION_MODEL_PATH):
         emotion_data = joblib.load(EMOTION_MODEL_PATH)
-        print("Loaded Emotion model successfully.")
+        logger.info("Loaded Emotion model successfully.")
 except Exception as e:
-    print(f"Failed to load emotion model: {e}")
+    logger.error(f"Failed to load emotion model: {e}")
 
 try:
     if os.path.exists(SENTIMENT_MODEL_PATH):
         sentiment_data = joblib.load(SENTIMENT_MODEL_PATH)
-        print("Loaded Sentiment model successfully.")
+        logger.info("Loaded Sentiment model successfully.")
 except Exception as e:
-    print(f"Failed to load sentiment model: {e}")
+    logger.error(f"Failed to load sentiment model: {e}")
+
 
 
 def predict_burnout(stress_level: int, sleep_hours: float, productivity_level: int, motivation_level: int, study_hours: float = 5.0, extracurricular_hours: float = 2.0):
@@ -287,3 +292,28 @@ def extract_journal_features(text: str) -> dict:
         "anxiety_indicators": anxiety_count,
         "positive_indicators": positive_count,
     }
+
+
+async def predict_burnout_async(stress_level: int, sleep_hours: float, productivity_level: int, motivation_level: int, study_hours: float = 5.0, extracurricular_hours: float = 2.0):
+    return await asyncio.to_thread(
+        predict_burnout,
+        stress_level,
+        sleep_hours,
+        productivity_level,
+        motivation_level,
+        study_hours,
+        extracurricular_hours
+    )
+
+
+async def predict_emotion_async(text: str):
+    return await asyncio.to_thread(predict_emotion, text)
+
+
+async def predict_sentiment_async(text: str):
+    return await asyncio.to_thread(predict_sentiment, text)
+
+
+async def extract_journal_features_async(text: str):
+    return await asyncio.to_thread(extract_journal_features, text)
+

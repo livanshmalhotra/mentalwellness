@@ -25,16 +25,14 @@ const Login = () => {
       navigate('/');
     } catch (err) {
       console.error(err);
-      // Strip Firebase prefix for cleaner UI errors if present (e.g. Firebase: Error (auth/user-not-found).)
       let userFriendlyError = err.message || 'Login failed. Please verify your credentials and try again.';
-      if (userFriendlyError.includes('auth/')) {
-        if (userFriendlyError.includes('user-not-found') || userFriendlyError.includes('wrong-password') || userFriendlyError.includes('invalid-credential')) {
-          userFriendlyError = 'Invalid email or password. Please try again.';
-        } else if (userFriendlyError.includes('invalid-email')) {
-          userFriendlyError = 'The email address is badly formatted.';
-        } else if (userFriendlyError.includes('network-request-failed')) {
-          userFriendlyError = 'Network error. Please check your internet connection.';
-        }
+      const msg = userFriendlyError.toLowerCase();
+      if (msg.includes('invalid login credentials') || msg.includes('invalid credentials') || msg.includes('user not found') || msg.includes('invalid email')) {
+        userFriendlyError = 'Invalid email or password. Please try again.';
+      } else if (msg.includes('email not confirmed')) {
+        userFriendlyError = 'Please verify your email address before signing in.';
+      } else if (msg.includes('network') || msg.includes('failed to fetch')) {
+        userFriendlyError = 'Network error. Please check your internet connection.';
       }
       setError(userFriendlyError);
     } finally {

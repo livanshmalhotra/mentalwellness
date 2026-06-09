@@ -7,7 +7,7 @@ from app.models.models import MoodLog, JournalEntry, BurnoutPrediction, Notifica
 from app.utils.ml_helpers import extract_journal_features
 
 
-def _get_assessment_data(db: Session, user_id: int) -> Optional[Dict[str, Any]]:
+def _get_assessment_data(db: Session, user_id: str) -> Optional[Dict[str, Any]]:
     """Fetch the user's active assessment profile for wellness scoring."""
     profile = db.query(AssessmentProfile).filter(
         AssessmentProfile.user_id == user_id,
@@ -159,7 +159,7 @@ def generate_wellness_explanation(components: Dict[str, float], assessment: Opti
     return explanation
 
 
-def get_dashboard_analytics(db: Session, user_id: int) -> Dict[str, Any]:
+def get_dashboard_analytics(db: Session, user_id: str) -> Dict[str, Any]:
     # 1. Fetch data
     all_moods = db.query(MoodLog).filter(MoodLog.user_id == user_id).order_by(MoodLog.created_at.desc()).all()
     user_moods = [m for m in all_moods if m.mood_source != "onboarding_assessment"]

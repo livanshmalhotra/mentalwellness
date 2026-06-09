@@ -35,16 +35,15 @@ const Register = () => {
     } catch (err) {
       console.error(err);
       let userFriendlyError = err.message || 'Registration failed. Please try again.';
-      if (userFriendlyError.includes('auth/')) {
-        if (userFriendlyError.includes('email-already-in-use')) {
-          userFriendlyError = 'This email address is already registered.';
-        } else if (userFriendlyError.includes('invalid-email')) {
-          userFriendlyError = 'The email address is badly formatted.';
-        } else if (userFriendlyError.includes('weak-password')) {
-          userFriendlyError = 'The password is too weak. Please choose a stronger password.';
-        } else if (userFriendlyError.includes('network-request-failed')) {
-          userFriendlyError = 'Network error. Please check your internet connection.';
-        }
+      const msg = userFriendlyError.toLowerCase();
+      if (msg.includes('already registered') || msg.includes('user_already_exists') || msg.includes('already exists')) {
+        userFriendlyError = 'This email address is already registered.';
+      } else if (msg.includes('invalid email') || msg.includes('badly formatted')) {
+        userFriendlyError = 'The email address is badly formatted.';
+      } else if (msg.includes('weak-password') || msg.includes('should be at least') || msg.includes('password')) {
+        userFriendlyError = 'Password is too weak or too short (minimum 6 characters).';
+      } else if (msg.includes('network') || msg.includes('failed to fetch')) {
+        userFriendlyError = 'Network error. Please check your internet connection.';
       }
       setError(userFriendlyError);
     } finally {

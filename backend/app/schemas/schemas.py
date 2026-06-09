@@ -13,7 +13,7 @@ class UserLogin(BaseModel):
     password: str
 
 class UserResponse(BaseModel):
-    id: int
+    id: str
     email: EmailStr
     full_name: Optional[str] = None
     created_at: datetime
@@ -66,7 +66,7 @@ class MoodLogCreate(BaseModel):
 
 class MoodLogResponse(BaseModel):
     id: int
-    user_id: int
+    user_id: str
     mood_score: int
     stress_level: int
     energy_level: Optional[int] = None
@@ -89,7 +89,7 @@ class JournalEntryCreate(BaseModel):
 
 class JournalEntryResponse(BaseModel):
     id: int
-    user_id: int
+    user_id: str
     text: str
     sentiment: str
     sentiment_score: Optional[float] = None
@@ -116,7 +116,7 @@ class JournalUpdateRequest(BaseModel):
 # --- Prediction Schemas ---
 class BurnoutPredictionResponse(BaseModel):
     id: int
-    user_id: int
+    user_id: str
     stress_level: int
     sleep_hours: float
     productivity_level: int
@@ -139,7 +139,7 @@ class EmotionPredictionResponse(BaseModel):
 # --- Recommendation Schemas ---
 class RecommendationResponse(BaseModel):
     id: int
-    user_id: int
+    user_id: str
     title: str
     category: str
     content: str
@@ -153,7 +153,7 @@ class RecommendationResponse(BaseModel):
 # --- Notification Schemas ---
 class NotificationResponse(BaseModel):
     id: int
-    user_id: int
+    user_id: str
     type: str
     title: str
     message: str

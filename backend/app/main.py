@@ -1,15 +1,28 @@
 import uvicorn
+from dotenv import load_dotenv
+
+# Load environment variables from .env
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from app.utils.limiter import limiter
 
 from app.database.session import engine, Base, run_migrations
 from app.routes import auth, mood, journal, predict, analytics, chatbot, recommendations, notifications, assessment
+import os
 
-# Run database migrations
-run_migrations()
+env = os.getenv("ENV", "development")
 
-# Initialize Database tables
-Base.metadata.create_all(bind=engine)
+if env != "production":
+    # Run database migrations for development
+    run_migrations()
+    # Initialize Database tables
+    Base.metadata.create_all(bind=engine)
+else:
+    print("Production environment: Skipping auto-migrations and metadata.create_all. Run migrations using Alembic.")
 
 app = FastAPI(
     title="AI-Powered Student Burnout & Mental Wellness Intelligence System",
@@ -17,13 +30,21 @@ app = FastAPI(
     version="1.0.0"
 )
 
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 # CORS Configuration for React Frontend
-origins = [
-    "http://localhost:5173",  # Vite default port
-    "http://127.0.0.1:5173",
-    "http://localhost:3000",
-    "*"                       # Allow all for development flexibility
-]
+cors_origins_env = os.getenv("CORS_ORIGINS")
+if cors_origins_env:
+    origins = [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()]
+else:
+    origins = [
+        "http://localhost:5173",  # Vite default port
+        "http://127.0.0.1:5173",
+        "http://localhost:3000"
+    ]
+    if env != "production":
+        origins.append("*")
 
 app.add_middleware(
     CORSMiddleware,

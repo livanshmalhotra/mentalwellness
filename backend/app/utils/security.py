@@ -9,7 +9,18 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 
 # Configuration
-JWT_SECRET = os.getenv("JWT_SECRET", "8f4679720df545b79e2a6d7bb957b42f2b963cfb2a6ad3b0f5ef5b84c8a2cd76")
+env_mode = os.getenv("ENV", "development")
+JWT_SECRET = os.getenv("JWT_SECRET")
+
+# Fallback block with strict security checks for production environments
+DEFAULT_JWT_SECRET = "8f4679720df545b79e2a6d7bb957b42f2b963cfb2a6ad3b0f5ef5b84c8a2cd76"
+if env_mode == "production":
+    if not JWT_SECRET or JWT_SECRET == DEFAULT_JWT_SECRET:
+        raise ValueError("CRITICAL SECURITY ERROR: You must set a unique, secure JWT_SECRET in production mode.")
+else:
+    if not JWT_SECRET:
+        JWT_SECRET = DEFAULT_JWT_SECRET
+
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
 

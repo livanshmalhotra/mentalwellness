@@ -1,14 +1,17 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 from app.models.models import User, JournalEntry
 from app.database.session import get_db
 from app.middleware.auth import get_current_user
 from app.schemas.schemas import ChatbotRequest, ChatbotResponse
+from app.utils.limiter import limiter
 
 router = APIRouter(prefix="/api/chatbot", tags=["chatbot"])
 
 @router.post("", response_model=ChatbotResponse)
+@limiter.limit("10/minute")
 def api_chatbot(
+    request: Request,
     payload: ChatbotRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)

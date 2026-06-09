@@ -1,39 +1,72 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from datetime import timedelta
-
 from app.models.models import User
 from app.schemas.schemas import UserCreate, UserLogin, Token
-from app.utils.security import get_password_hash, verify_password, create_access_token
+from app.middleware.auth import supabase
 
 def register_user(db: Session, user_in: UserCreate) -> User:
-    # Check if user already exists
-    existing_user = db.query(User).filter(User.email == user_in.email).first()
-    if existing_user:
+    try:
+        # Register user with Supabase Auth
+        res = supabase.auth.sign_up({
+            "email": user_in.email,
+            "password": user_in.password,
+            "options": {
+                "data": {
+                    "full_name": user_in.full_name
+                }
+            }
+        })
+        supabase_user = res.user
+        if not supabase_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Signup failed. Please verify email is not already registered."
+            )
+            
+        # Check if local user already exists
+        existing_user = db.query(User).filter(User.id == supabase_user.id).first()
+        if not existing_user:
+            db_user = User(
+                id=supabase_user.id,
+                email=user_in.email,
+                full_name=user_in.full_name,
+                hashed_password=""  # Empty password indicates Supabase SSO/Auth login
+            )
+            db.add(db_user)
+            db.commit()
+            db.refresh(db_user)
+            return db_user
+            
+        return existing_user
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="A user with this email address already exists."
+            detail=str(e)
         )
-    
-    hashed_pw = get_password_hash(user_in.password)
-    db_user = User(
-        email=user_in.email,
-        hashed_password=hashed_pw,
-        full_name=user_in.full_name
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
 
 def authenticate_user(db: Session, credentials: UserLogin) -> Token:
-    user = db.query(User).filter(User.email == credentials.email).first()
-    if not user or not verify_password(credentials.password, user.hashed_password):
+    try:
+        # Authenticate user with Supabase Auth
+        res = supabase.auth.sign_in_with_password({
+            "email": credentials.email,
+            "password": credentials.password
+        })
+        if not res.session:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication failed. Invalid credentials."
+            )
+            
+        return Token(
+            access_token=res.session.access_token,
+            token_type="bearer"
+        )
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
+            detail=str(e)
         )
-    
-    access_token = create_access_token(subject=user.email)
-    return Token(access_token=access_token, token_type="bearer")

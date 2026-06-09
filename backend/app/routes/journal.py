@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Request
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -18,6 +18,7 @@ from app.services.journal_service import (
     unlock_journal_entry, 
     update_journal_entry
 )
+from app.utils.limiter import limiter
 
 router = APIRouter(prefix="/api/journal", tags=["journal"])
 
@@ -31,7 +32,9 @@ def api_has_passcode(
     return {"has_passcode": current_user.private_journal_password_hash is not None}
 
 @router.post("/set-passcode", status_code=status.HTTP_200_OK)
+@limiter.limit("5/minute")
 def api_set_passcode(
+    request: Request,
     passcode_in: PasscodeRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -68,7 +71,9 @@ def api_get_journal_history(
     return get_journal_history(db=db, user_id=current_user.id, limit=limit)
 
 @router.post("/{id}/unlock", response_model=JournalEntryResponse)
+@limiter.limit("10/minute")
 def api_unlock_journal(
+    request: Request,
     id: int,
     unlock_in: JournalUnlockRequest,
     current_user: User = Depends(get_current_user),

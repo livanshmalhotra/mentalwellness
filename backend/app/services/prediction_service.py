@@ -5,7 +5,7 @@ from fastapi import HTTPException, status
 from app.models.models import MoodLog, BurnoutPrediction, Notification, AssessmentProfile, JournalEntry
 from app.utils.ml_helpers import predict_burnout
 
-def run_burnout_prediction(db: Session, user_id: int) -> BurnoutPrediction:
+def run_burnout_prediction(db: Session, user_id: str) -> BurnoutPrediction:
     # Get the latest mood log of the user, prioritizing user-reported logs
     latest_mood = db.query(MoodLog)\
                     .filter(MoodLog.user_id == user_id, MoodLog.mood_source != "onboarding_assessment")\

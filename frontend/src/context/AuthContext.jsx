@@ -1,12 +1,5 @@
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
-import { auth } from '../services/firebase';
-import { 
-  onAuthStateChanged, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut,
-  updateProfile
-} from 'firebase/auth';
+import { supabase } from '../services/supabase';
 import { assessmentAPI } from '../services/api';
 
 const AuthContext = createContext(null);
@@ -29,24 +22,40 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        try {
-          // Force refresh the token to get a fresh Firebase ID token
-          const idToken = await firebaseUser.getIdToken(true);
-          localStorage.setItem('token', idToken);
-          setToken(idToken);
+    // Check active session immediately on load
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          localStorage.setItem('token', session.access_token);
+          setToken(session.access_token);
           setUser({
-            email: firebaseUser.email,
-            displayName: firebaseUser.displayName,
+            email: session.user.email,
+            displayName: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
           });
-          // Fetch onboarding status after login
           // Small delay to ensure token is set in localStorage for API interceptor
           setTimeout(() => fetchOnboardingStatus(), 100);
-        } catch (err) {
-          console.error("Error getting Firebase ID token:", err);
-          logout();
         }
+      } catch (err) {
+        console.error("Error checking initial session:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkSession();
+
+    // Listen for auth state changes (login, logout, token refresh, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session) {
+        const idToken = session.access_token;
+        localStorage.setItem('token', idToken);
+        setToken(idToken);
+        setUser({
+          email: session.user.email,
+          displayName: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
+        });
+        setTimeout(() => fetchOnboardingStatus(), 100);
       } else {
         localStorage.removeItem('token');
         setToken(null);
@@ -56,42 +65,60 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     });
 
-    return () => unsubscribe();
-  }, []);
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [fetchOnboardingStatus]);
 
   const loginWithEmail = async (email, password) => {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const idToken = await userCredential.user.getIdToken();
-    localStorage.setItem('token', idToken);
-    setToken(idToken);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    
+    const session = data.session;
+    localStorage.setItem('token', session.access_token);
+    setToken(session.access_token);
     setUser({
-      email: userCredential.user.email,
-      displayName: userCredential.user.displayName,
+      email: data.user.email,
+      displayName: data.user.user_metadata?.full_name || data.user.email.split('@')[0],
     });
+    
     // Fetch onboarding status
     setTimeout(() => fetchOnboardingStatus(), 100);
-    return userCredential;
+    return data;
   };
 
   const registerWithEmail = async (email, password, fullName) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    // Update the profile display name in Firebase Auth
-    await updateProfile(userCredential.user, { displayName: fullName });
-    // Force refresh token to ensure display name/custom claims are in the ID token
-    const idToken = await userCredential.user.getIdToken(true);
-    localStorage.setItem('token', idToken);
-    setToken(idToken);
-    setUser({
-      email: userCredential.user.email,
-      displayName: fullName,
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+        }
+      }
     });
+    if (error) throw error;
+
+    // Check if session is already active (i.e. auto-confirmed)
+    const session = data.session;
+    if (session) {
+      localStorage.setItem('token', session.access_token);
+      setToken(session.access_token);
+      setUser({
+        email: data.user.email,
+        displayName: fullName,
+      });
+    }
+    
     // New user — onboarding not yet done
     setOnboardingCompleted(false);
-    return userCredential;
+    return data;
   };
 
   const logout = async () => {
-    await signOut(auth);
+    const { error } = await supabase.auth.signOut();
+    if (error) console.error("Error signing out:", error);
+    
     localStorage.removeItem('token');
     setToken(null);
     setUser(null);

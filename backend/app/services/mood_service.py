@@ -10,7 +10,7 @@ from app.schemas.schemas import MoodLogCreate
 DUPLICATE_WINDOW_HOURS = 4
 
 
-def _check_duplicate_submission(db: Session, user_id: int):
+def _check_duplicate_submission(db: Session, user_id: str):
     """Prevent duplicate submissions within the configurable time window."""
     cutoff = datetime.utcnow() - timedelta(hours=DUPLICATE_WINDOW_HOURS)
     recent = db.query(MoodLog).filter(
@@ -24,7 +24,7 @@ def _check_duplicate_submission(db: Session, user_id: int):
         )
 
 
-def _get_user_assessment(db: Session, user_id: int):
+def _get_user_assessment(db: Session, user_id: str):
     """Fetch user's active assessment profile for personality-aware recommendations."""
     return db.query(AssessmentProfile).filter(
         AssessmentProfile.user_id == user_id,
@@ -32,7 +32,7 @@ def _get_user_assessment(db: Session, user_id: int):
     ).order_by(AssessmentProfile.created_at.desc()).first()
 
 
-def create_mood_log(db: Session, mood_in: MoodLogCreate, user_id: int) -> MoodLog:
+def create_mood_log(db: Session, mood_in: MoodLogCreate, user_id: str) -> MoodLog:
     # Check for duplicate submission
     _check_duplicate_submission(db, user_id)
 
@@ -55,7 +55,7 @@ def create_mood_log(db: Session, mood_in: MoodLogCreate, user_id: int) -> MoodLo
     
     return db_mood
 
-def get_mood_history(db: Session, user_id: int, limit: int = 30) -> List[MoodLog]:
+def get_mood_history(db: Session, user_id: str, limit: int = 30) -> List[MoodLog]:
     return db.query(MoodLog)\
              .filter(MoodLog.user_id == user_id)\
              .order_by(MoodLog.created_at.desc())\

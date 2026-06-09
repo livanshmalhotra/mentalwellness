@@ -9,7 +9,7 @@ from app.schemas.schemas import JournalEntryCreate
 from app.utils.ml_helpers import predict_emotion, predict_sentiment
 from app.utils.security import encrypt_text, decrypt_text, verify_password, get_password_hash
 
-def create_journal_entry(db: Session, journal_in: JournalEntryCreate, user_id: int) -> JournalEntry:
+def create_journal_entry(db: Session, journal_in: JournalEntryCreate, user_id: str) -> JournalEntry:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -86,7 +86,7 @@ def create_journal_entry(db: Session, journal_in: JournalEntryCreate, user_id: i
         
     return db_entry
 
-def get_journal_history(db: Session, user_id: int, limit: int = 30) -> List[JournalEntry]:
+def get_journal_history(db: Session, user_id: str, limit: int = 30) -> List[JournalEntry]:
     entries = db.query(JournalEntry)\
                  .filter(JournalEntry.user_id == user_id)\
                  .order_by(JournalEntry.created_at.desc())\
@@ -103,7 +103,7 @@ def get_journal_history(db: Session, user_id: int, limit: int = 30) -> List[Jour
             entry.stress_level = None
     return entries
 
-def unlock_journal_entry(db: Session, entry_id: int, user_id: int, password: str) -> dict:
+def unlock_journal_entry(db: Session, entry_id: int, user_id: str, password: str) -> dict:
     entry = db.query(JournalEntry).filter(JournalEntry.id == entry_id, JournalEntry.user_id == user_id).first()
     if not entry:
         raise HTTPException(status_code=404, detail="Journal entry not found")
@@ -145,7 +145,7 @@ def unlock_journal_entry(db: Session, entry_id: int, user_id: int, password: str
     except Exception:
         raise HTTPException(status_code=400, detail="Decryption failed. Please verify your passcode.")
 
-def update_journal_entry(db: Session, entry_id: int, user_id: int, text: str, password: str = None) -> dict:
+def update_journal_entry(db: Session, entry_id: int, user_id: str, text: str, password: str = None) -> dict:
     entry = db.query(JournalEntry).filter(JournalEntry.id == entry_id, JournalEntry.user_id == user_id).first()
     if not entry:
         raise HTTPException(status_code=404, detail="Journal entry not found")
